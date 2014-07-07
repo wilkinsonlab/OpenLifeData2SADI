@@ -3,6 +3,10 @@ use warnings;
 use RDF::Query::Client;
 use LWP::Simple;
 
+# Filtering of queries at the SPARQL end is just too slow.
+# this version of the code does the regexp filtering on the results,
+# rather than in the query
+
 my $namedgSPARQL = 'PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 
@@ -14,18 +18,6 @@ WHERE {
 }';
 
 
-#http://bio2rdf.org/bio2rdf.dataset:bio2rdf-affymetrix-20131220
-#http://bio2rdf.org/bio2rdf.dataset:bio2rdf-hgnc-20131212
-#my $RAWsubjecttypesSPARQL = 'SELECT distinct(?stype)
-#FROM <NAMED_GRAPH_HERE>
-#WHERE {
-# ?s a ?stype .
-# FILTER (!regex(?stype, "owl#")) .
-# FILTER (!regex(?stype, "dc/terms/Dataset")) .
-# FILTER (!regex(?stype, "w3.org")) .
-# FILTER (!regex(?stype, ":Resource")) 
-#}';
-
 my $RAWsubjecttypesSPARQL = 'SELECT distinct(?stype)
 FROM <NAMED_GRAPH_HERE>
 WHERE {
@@ -33,17 +25,6 @@ WHERE {
 }
 ';
 
-
-
-#my $RAWpredicatetypesSPARQL = 'SELECT distinct(?p)
-#FROM <NAMED_GRAPH_HERE>
-#WHERE {
-# ?s a <SUBJECT_TYPE_HERE> .
-#?s ?p ?o .   
-#FILTER (!regex(?p, "w3.org"))
-#FILTER (?p != <http://rdfs.org/ns/void#inDataset>)
-#}
-#';
 
 my $RAWpredicatetypesSPARQL = 'SELECT distinct(?p)
 FROM <NAMED_GRAPH_HERE>
@@ -54,17 +35,6 @@ WHERE {
 ';
 
 
-#my $RAWobjecttypesSPARQL = 'SELECT distinct(?otype)
-#FROM <NAMED_GRAPH_HERE>
-#WHERE {
-# ?s a <SUBJECT_TYPE_HERE> .
-#?s <PREDICATE_TYPE_HERE> ?o .   
-#?o a ?otype
-# FILTER (!regex(?otype, "owl#")) .
-# FILTER (!regex(?stype, "w3.org")) .
-#
-#}';
-
 my $RAWobjecttypesSPARQL = 'SELECT distinct(?otype)
 FROM <NAMED_GRAPH_HERE>
 WHERE {
@@ -73,24 +43,6 @@ WHERE {
 ?o a ?otype
 }';
 
-
-#my $RAWspecificobjecttypesSPARQL = 'SELECT distinct(?o)
-#WHERE { 
-#
-#    SERVICE <LOCALENDPOINT>  
-#         
-#      {SELECT ?s { ?s a <OTYPE> } LIMIT 200 }
-#  
-#
-#   SERVICE <REMOTEENDPOINT>
-#        
-#       { ?s a ?o .
-#         FILTER (?o != <OTYPE>)
-#         FILTER (!regex(?o, "w3.org" ))
-#       }
-#  
-#}
-#';
 
 my $RAWspecificobjecttypesSPARQL = 'SELECT distinct(?o)
 WHERE { 
@@ -109,7 +61,9 @@ WHERE {
 ';
 
         
-
+# this currently doesn't work on OpenLifeData endpoints.
+# it probably has something to do with the query rewrites
+# but may be a more general problem with Virtuoso?
 my $RAWobjectdatatypesSPARQL = 'SELECT distinct(datatype(?o)) as ?datatype
 FROM <NAMED_GRAPH_HERE>
 WHERE {
@@ -124,27 +78,22 @@ group by ?o
 
 my %dataset_endpoints;
 
-open(OUT, ">endpoint_datatypes.list") || die "can't open output file for writing $!\n";
+open(OUT, ">>endpoint_datatypes.list") || die "can't open output file for writing $!\n";
 
 
-#my $bio2rdfendpoints = get('http://s4.semanticscience.org/bio2rdf/3/');
-my $bio2rdfendpoints = get('http://openlifedata.org/');
-$bio2rdfendpoints =~ s/content\-type.*//gs;
-my @namespaces = ($bio2rdfendpoints =~ m'<td>([a-z]+)</td>'gs);
+# need to screen-scrape the endpoints from Michel's web page
+my $openlifedataendpoints = get('http://openlifedata.org/');
+$openlifedataendpoints =~ s/content\-type.*//gs;
+my @namespaces = ($openlifedataendpoints =~ m'<td>([a-z]+)</td>'gs);
 foreach my $namespace(@namespaces){
         next if $namespace eq "ndc";
         next if $namespace eq "lsr";
         next if $namespace eq "bioportal";
         next if $namespace eq "clinicaltrials";
-        
-        next if $namespace eq "mesh";
-        next if $namespace eq "pharmgkb";
+# these are filtered-out at the moment, since I didn't think
+# the data they contained (in the format they contain it) was
+# modeled in a manner that would be particularly useful in a SADI service
 
-        next if $namespace eq "drugbank";  # wait until Michel finishes reparsing the data
-
-        
-        ##### my $page = get("http://s4.semanticscience.org/bio2rdf/3/$namespace.html");
-        ##### $page =~ m|(http://s4.semanticscience.org:14\d\d\d/sparql)|s;
         my $endpoint = "http://openlifedata.org/$namespace/sparql/";
         die "not found $namespace\n\n" unless $endpoint;
 
@@ -157,36 +106,12 @@ foreach my $namespace(@namespaces){
                 next if $row->{graph}->[1] =~ /statistics/;
                 next unless ($row->{graph}->[1] =~ /openlifedata\.dataset/);
                 $namedgraph = $row->{graph}->[1];
-                #### my $this = $1;
-                ##### ($namedgraph = $row->{graph}->[1]) if ($this > $highest);
                 print "$namespace, $namedgraph, $endpoint\n";
         }
 
         $dataset_endpoints{$namespace} = [$endpoint, $namedgraph];
         
 }
-#die;
-
-#while (($bio2rdfendpoints =~ /\[(\w+)\].*?(http:\/\/s4.semanticscience.org:\d+\/sparql)/sg) ) {
-#        my ($namespace, $endpoint) = ($1, $2);
-#        next if $namespace eq "ndc";
-#        next if $namespace eq "lsr";
-#        next if $namespace eq "bioportal";
-#        
-#        my $graphquery = RDF::Query::Client->new($namedgSPARQL);
-#        my $iterator = $graphquery->execute($endpoint,  {Parameters => {timeout => 380000, format => 'application/sparql-results+json'}});
-#        next unless $iterator;  # in case endpoint is down
-#        my $namedgraph;
-#        my $highest=0;
-#        while (my $row = $iterator->next){
-#                next unless ($row->{graph}->[1] =~ /bio2rdf.dataset.*?(\d+)$/);
-#                my $this = $1;
-#                ($namedgraph = $row->{graph}->[1]) if ($this > $highest);
-#                print "$namespace, $namedgraph, $endpoint\n";
-#        }
-#
-#        $dataset_endpoints{$namespace} = [$endpoint, $namedgraph];
-#}
 
 foreach my $namespace(sort(keys %dataset_endpoints)){
         my ($endpoint, $namedgraph) = @{$dataset_endpoints{$namespace}};
@@ -236,7 +161,7 @@ foreach my $namespace(sort(keys %dataset_endpoints)){
                         
                         my $otypequery = RDF::Query::Client->new($objecttypesSPARQL); # query for all output types of the form xxx_vocabulary:Resource
                         my $oiterator = $otypequery->execute($endpoint,  {Parameters => {timeout => 380000, format => 'application/sparql-results+json'}});
-                        #unless ($oiterator){print "          ---------no object types found for $stype $ptype -----------\n";}
+
                         my $FLAG = 0;   # this is a flag that is up when it is a resource object, and down when it is a datatype object
                         if ($oiterator){
                                 while (my $row = $oiterator->next){
@@ -254,7 +179,7 @@ foreach my $namespace(sort(keys %dataset_endpoints)){
                                                 print OUT "$namespace\t$stype\t$ptype\t$otype\n";
                                                 print OUT "$namespace\t$base_input_type\t$ptype\t$otype\n" if $base_input_type;
                                         } else {  # this is one of those generic bio2rdf REsource types, so try to figure out a more specific type with a federated query
-#                                                die "can't match $otype to determine Bio2RDF namespace" unless ($otype =~ m|bio2rdf\.org/([^_]+)_|);  # match everything after the / and up to the next '_'
+
                                                 die "can't match $otype to determine Bio2RDF namespace" unless ($otype =~ m|openlifedata\.org/([^_]+)_|);  # match everything after the / and up to the next '_'
                                                 my $remotenamespace = $1;
                                                 print "checking $remotenamespace\n";   # is this a namespace that we have heard of before?
@@ -302,6 +227,8 @@ foreach my $namespace(sort(keys %dataset_endpoints)){
                         $datatypesSPARQL =~ s/PREDICATE_TYPE_HERE/$ptype/;
                         
                         my $diterator;
+                        #  this code removed since it makes the endpoint very unhappy to execute this query right now.
+                        # default to string for the moment
                         #my $dtypequery = RDF::Query::Client->new($datatypesSPARQL); # query for all output types of the form xxx_vocabulary:Resource
                         #$dtypequery->useragent->default_headers->header(Accept => "text/plain");
                         #$diterator = $dtypequery->execute($endpoint,  {Parameters => {timeout => 380000, format => 'text/plain'}});
@@ -326,7 +253,7 @@ foreach my $namespace(sort(keys %dataset_endpoints)){
                         #}
                 }
         }
-        # exit 1;
+
 }
 exit 1;
 

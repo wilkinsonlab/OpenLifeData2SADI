@@ -1,10 +1,10 @@
 #!/usr/bin/perl -w
 
-package BIO2RDF_WRAPPER;
+package OpenLifeData_WRAPPER;
 
 =head1  NAME
   
-  BIO2RDF_WRAPPER - a SADI service wrapper for Bio2RDF endpoints
+  OpenLifeData_WRAPPER - a SADI service wrapper for OpenLifeData endpoints
 
 
 =cut
@@ -90,7 +90,7 @@ close OWL;
 my $servicename = $CFG->{'INPUTCLASS_NAME'}."_".$CFG->{'PREDICATE_NAME'};
 &easy_die("couldn't create the servicename\n") unless $servicename;
 
-my $description = "consumes $CFG->{'INPUTCLASS_NAME'} identifiers ($CFG->{'INPUTCLASS_URI'} namespace) and generates the \'$CFG->{'PREDICATE_NAME'}\' property for them from the Bio2RDF $dataset endpoint";
+my $description = "consumes $CFG->{'INPUTCLASS_NAME'} identifiers ($CFG->{'INPUTCLASS_URI'} namespace) and generates the \'$CFG->{'PREDICATE_NAME'}\' property for them from the OpenLifeData $dataset endpoint";
 &easy_die("couldn't create service description\n") unless $description;
 
 #  CONFIGURATION FILE EXTRACTON COMPLETE
@@ -104,7 +104,7 @@ my %config = (
     InputClass => $CFG->{'INPUTCLASS_URI'},
     OutputClass => $CFG->{'OUTPUTCLASS_URI'},
     URL => $THISSCRIPT, 
-    Authority => 'bio2rdf2sadi.wilkinsonlab.info', 
+    Authority => 'openlifedata2sadi.wilkinsonlab.info', 
     Provider => 'markw@illuminae.com',
     ServiceType => 'http://edamontology.org/operation_2421',  # EDAM:Database Query
     Authoritative => 0,
@@ -113,7 +113,7 @@ my %config = (
 
 
 # and here we decide why we were called, and how to respond
-my $service = BIO2RDF_WRAPPER->new(%config);
+my $service = OpenLifeData_WRAPPER->new(%config);
 $service->handle_cgi_request;
 
 #-----------------------------------------------------------------
@@ -141,25 +141,34 @@ sub process_it {
 
     my ($self, $inputs, $input_model, $output_model) = @_;
 
+    my $RDFtype = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+
     foreach my $input (@$inputs) {
 
     	my $inputURIString = $input->as_string;
 		$sparql =~ s/\%VAR/$inputURIString/;  # substitute the SPARQL variable with the URI of the input data
+#print STDERR "\n\n\n\n$sparql\n\n\n\n";
 		my $query = RDF::Query::Client->new($sparql);
-		my $iterator = $query->execute($CFG->{'GENERIC_ENDPOINT'});  # execute the query against the URL of the endpoint
-		
+#		my $iterator = $query->execute($CFG->{'ORIGINAL_ENDPOINT'});  # execute the query against the URL of the endpoint
+		my $iterator = $query->execute($CFG->{'GENERIC_ENDPOINT'}.'/',  {Parameters => {timeout => 380000, format => 'application/sparql-results+json'}});  # execute the query against the URL of the endpoint
 		if ($iterator){ 
 			while (my $row = $iterator->next) {
    				# $row is a HASHref containing variable name -> RDF Term bindings
-   				my $resultURI = $row->{ 'obj' }->as_string;
-   				$resultURI =~ s/[\<\>]//g;
-   				my $object = RDF::Trine::Node::Resource->new($resultURI);
-   				my $pred = RDF::Trine::Node::Resource->new($CFG->{'PREDICATE_URI'});  # what is the predicate that we should be adding
-				my $statement = RDF::Trine::Statement->new($input, $pred, $object); 
+   				my $result = $row->{ 'obj' }->as_string;
+				my $statement = &statement($input, $CFG->{'PREDICATE_URI'}, $result); 
 	        		$output_model->add_statement($statement, $input);
+
+				unless ($statement->object->is_literal){
+					my $object = $statement->object;
+					my $statement2 = &statement($object, $RDFtype, $CFG->{'OBJECT_TYPE'});
+					$output_model->add_statement($statement2, $input);
+				}
 				$output_model->nanopublish_result_for($input);
 			}
-   		}
+   		} else {
+			easy_die("\n\n\nERROR ".($query->error)." executing $sparql\n\n on  $CFG->{'ORIGINAL_ENDPOINT'}");
+			#easy_die($query->error);
+		}
 	}
 }
 
@@ -172,7 +181,7 @@ sub process_it {
 sub easy_die {
 	my $message = shift; 
 	print "Content-type: text/plain", "\n\n";
-	print "$message\n";
+	print "$message\n\n\n\n";
 # uncomment this if you want to see a dump of your server environment variables
 # by executing cgi-bin/SADI with no additional path information in your browser
 #	for (keys %ENV) { 
@@ -193,6 +202,7 @@ sub easy_die {
 sub getConfig{
 	my ($dataset, $method) = @_;
 	easy_die("Configuration file $dataset $method doesn't exist") unless (-e "$CONFIGURATION_FILE_PATH/$dataset/$method.cfg");
+
 	open (CFG, "$CONFIGURATION_FILE_PATH/$dataset/$method.cfg");
 	my %config;
 	foreach (
@@ -203,7 +213,8 @@ sub getConfig{
 	"PREDICATE_NAME", 
 	"PREDICATE_URI",
 	"ORIGINAL_ENDPOINT", 
-	"GENERIC_ENDPOINT") {
+	"GENERIC_ENDPOINT",
+	"OBJECT_TYPE",) {
 		
 		my $line = <CFG> || easy_die("not enough parameters in the config file; missing $_\n");
 		easy_die("config line $line doesn't match expected structure\n") unless $line =~ /$_\=(\S+)/;
@@ -217,5 +228,35 @@ sub getConfig{
 	close CFG;
 	return \%config;	
 }
+
+sub statement {
+	my ($s, $p, $o) = @_;
+	unless (ref($s) =~ /Trine/){
+		$s =~ s/[\<\>]//g;
+		$s = RDF::Trine::Node::Resource->new($s);
+	}
+	unless (ref($p) =~ /Trine/){
+		$p =~ s/[\<\>]//g;
+		$p = RDF::Trine::Node::Resource->new($p);
+	}
+	unless (ref($o) =~ /Trine/){
+
+		if ($o =~ /^http\:\/\//){
+			$o = RDF::Trine::Node::Resource->new($o);
+		} elsif ($o =~ /^<http\:\/\//){
+			$o =~ s/[\<\>]//g;
+			$o = RDF::Trine::Node::Resource->new($o);
+		} elsif ($o =~ /"(.*?)"\^\^\<http\:/) {
+			$o = RDF::Trine::Node::Literal->new($1);
+		} else {
+			$o = RDF::Trine::Node::Literal->new($o);				
+		}
+	}
+	my $statement = RDF::Trine::Statement->new($s, $p, $o);
+	return $statement;
+}
+
+
+
 
 1;
