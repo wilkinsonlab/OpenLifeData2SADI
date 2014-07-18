@@ -3,16 +3,16 @@ use strict;
 
 =head1 NAME
 
- Bio2RDF2SADI2OPMW.pl  - a script to create a comprehensive
-           connectivity map between all pipelineable Bio2RDF2SADI
+ OpenLifeData2SADI2OPMW.pl  - a script to create a comprehensive
+           connectivity map between all pipelineable OpenLifeData2SADI
            services.  This is expressed as an
            Open Provenance Model Workflow model template.
  
 =head1 USAGE
 
   The only thing you might need to configure in this script
-  is the regexp that matches your Bio2RDF2SADI services.
-  For all of our services, this is 'Bio2RDF2SADI', which is
+  is the regexp that matches your OpenLifeData2SADI services.
+  For all of our services, this is 'OpenLifeData2SADI', which is
   a subfolder underneath our 'cgi-bin' folder. 
 
 =cut
@@ -40,7 +40,8 @@ my $generatedBy = $opmw->isGeneratedBy;
 my $wfData = $opmw->WorkflowTemplateArtifact;
 my $wfServ = $opmw->WorkflowTemplateProcess;
 
-
+# the regexp in this query is in teh very last line
+# you need to modify this for your own case
 my $query = <<EOQ;
 PREFIX  dc:   <http://protege.stanford.edu/plugins/owl/dc/protege-dc.owl#>
 PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -65,7 +66,7 @@ WHERE
 
     ?operation2 serv:inputParameter ?in2 .
     ?in2  serv:objectType ?output_type .
-    FILTER(regex(?s1, "Bio2RDF2SADI")) .
+    FILTER(regex(?s1, "OpenLifeData2SADI")) .
 
   }
 
@@ -85,7 +86,9 @@ EOQ
             $row->{s2}->as_string,
             $row->{name2}->as_string,
             $row->{desc2}->as_string);
-my $stm;    
+    print STDERR join "\t", ($serv1, $datatype, $name1, $desc1, $serv2, $name2, $desc2), "\n\n";
+    
+    my $stm;    
     $stm = statement($serv1, $type, $wfServ);
     $model->add_statement($stm);
     $stm = statement($serv1, $label, $name1);
@@ -115,7 +118,7 @@ my $stm;
                                                                      rdf => 'http://www.w3.org/1999/02/22-rdf-syntax-ns#'});
  
  my $turtle = $serializer->serialize_model_to_string($model);
- open(OUT, ">Bio2RDF2SADI2OPMW.ttl") || die "can't open output $!\n";
+ open(OUT, ">OpenLifeData2SADI2OPMW.ttl") || die "can't open output $!\n";
  print OUT $turtle;
  close OUT;
 
@@ -148,7 +151,7 @@ sub statement {
 		$p = RDF::Trine::Node::Resource->new($p);
 	}
 	unless (ref($o) =~ /Trine/){
-		if ($o =~ /http\:\/\//){
+		if ($o =~ /^http\:\/\//){
 			$o =~ s/[\<\>]//g;
 			$o = RDF::Trine::Node::Resource->new($o);
 		} elsif ($o =~ /\D/) {

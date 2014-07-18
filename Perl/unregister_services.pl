@@ -6,11 +6,11 @@ use RDF::Query::Client;
 
 =head1 NAME
 
- unregister_services.pl  - a script for bulk de-registering Bio2RDF2SADI services
+ unregister_services.pl  - a script for bulk de-registering OpenLifeData2SADI services
 
 =head1 USAGE
 
-  The first thing you need to do is take your Bio2RDF2SADI service script offline
+  The first thing you need to do is take your OpenLifeData2SADI service script offline
   (usually called "SADI" in a default installation)
   
   By taking this offline, the service will not respond to an HTTP GET, and
@@ -18,12 +18,12 @@ use RDF::Query::Client;
   remove it from the registry
   
   Therefore, all this script does is query the registry for all
-  Bio2RDF2SADI services, and then asks the registry to re-GET them...
+  OpenLifeData2SADI services, and then asks the registry to re-GET them...
   which fails, and therefore they become de-registered
   
   The only thing you might need to configure in this script is the regexp
-  that matches your Bio2RDF2SADI services.  For all of our services,
-  this is 'Bio2RDF2SADI', which is a subfolder underneath our 'cgi-bin' folder. 
+  that matches your OpenLifeData2SADI services.  For all of our services,
+  this is 'OpenLifeData2SADI', which is a subfolder underneath our 'cgi-bin' folder. 
 
 =cut
 
@@ -43,7 +43,7 @@ WHERE
   { ?s rdf:type serv:serviceDescription .
     ?s serv:providedBy ?org .
     ?org dc:publisher ?pub .
-    FILTER regex(str(?pub), "bio2rdf2sadi") . 
+    FILTER regex(str(?pub), "openlifedata2sadi") . 
   }
 
 EOF
