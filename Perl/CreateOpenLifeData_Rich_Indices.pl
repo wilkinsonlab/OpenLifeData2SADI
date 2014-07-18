@@ -49,7 +49,7 @@ WHERE {
 
     SERVICE <LOCALENDPOINT>  
          
-      {SELECT ?s { ?s a <OTYPE> } LIMIT 200 }
+      {SELECT ?s { ?s a <OTYPE> } LIMIT 1000 }
   
 
    SERVICE <REMOTEENDPOINT>
@@ -61,17 +61,18 @@ WHERE {
 ';
 
         
+# the original query was "select distincts(datatype(?o) as ?dt) but
 # this currently doesn't work on OpenLifeData endpoints.
-# it probably has something to do with the query rewrites
-# but may be a more general problem with Virtuoso?
-my $RAWobjectdatatypesSPARQL = 'SELECT distinct(datatype(?o)) as ?datatype
+# may be a more general problem with Virtuoso?  So... we assume
+# all things attached to a given predicate MUST have the same datatype
+# So just pick one...
+my $RAWobjectdatatypesSPARQL = 'SELECT (datatype(?o) as ?datatype)
 FROM <NAMED_GRAPH_HERE>
 WHERE {
  ?s a <SUBJECT_TYPE_HERE> .
 ?s <PREDICATE_TYPE_HERE> ?o .   
  FILTER isLiteral(?o)
-}
-group by ?o
+} LIMIT 1
 ';
 
 
@@ -86,13 +87,14 @@ my $openlifedataendpoints = get('http://openlifedata.org/');
 $openlifedataendpoints =~ s/content\-type.*//gs;
 my @namespaces = ($openlifedataendpoints =~ m'<td>([a-z]+)</td>'gs);
 foreach my $namespace(@namespaces){
-        next if $namespace eq "ndc";
-        next if $namespace eq "lsr";
-        next if $namespace eq "bioportal";
-        next if $namespace eq "clinicaltrials";
+
 # these are filtered-out at the moment, since I didn't think
 # the data they contained (in the format they contain it) was
 # modeled in a manner that would be particularly useful in a SADI service
+        next if $namespace eq "ndc";
+        next if $namespace eq "lsr";
+        next if $namespace eq "bioportal";
+
 
         my $endpoint = "http://openlifedata.org/$namespace/sparql/";
         die "not found $namespace\n\n" unless $endpoint;
@@ -121,7 +123,13 @@ foreach my $namespace(sort(keys %dataset_endpoints)){
         
         my $typequery = RDF::Query::Client->new($subjecttypesSPARQL); # query for all output types of the form xxx_vocabulary:Resource
         my $siterator = $typequery->execute($endpoint,  {Parameters => {timeout => 380000, format => 'application/sparql-results+json'}});
-        unless ($siterator){print "          ---------no subject types found -----------\n"; next;}
+        unless ($siterator){
+                print "          ---------no subject types found -----------\n";
+                open (ERR, ">>SPARQLerrors.list") || die "can't open error file $!\n";
+                print ERR "$endpoint, $subjecttypesSPARQL\n\n";
+                close ERR;
+                next;
+        }
 
         while (my $row = $siterator->next){
                 my $stype = $row->{stype}->[1];
@@ -144,7 +152,13 @@ foreach my $namespace(sort(keys %dataset_endpoints)){
                 
                 my $ptypequery = RDF::Query::Client->new($predicatetypesSPARQL); # query for all output types of the form xxx_vocabulary:Resource
                 my $piterator = $ptypequery->execute($endpoint,  {Parameters => {timeout => 380000, format => 'application/sparql-results+json'}});
-                unless ($piterator){print "          ---------no predicate types found for $stype -----------\n"; next;}
+                unless ($piterator){
+                        print "          ---------no predicate types found -----------\n";
+                        open (ERR, ">>SPARQLerrors.list") || die "can't open error file $!\n";
+                        print ERR "$endpoint, $predicatetypesSPARQL\n\n";
+                        close ERR;
+                        next;
+                }
         
                 while (my $row = $piterator->next){
                         my $ptype = $row->{p}->[1];
@@ -153,7 +167,6 @@ foreach my $namespace(sort(keys %dataset_endpoints)){
 
                         next if $ptype =~ 'w3.org';
                         next if $ptype =~ 'void#inDataset';
-                        
                         my $objecttypesSPARQL = $RAWobjecttypesSPARQL;
                         $objecttypesSPARQL =~ s/NAMED_GRAPH_HERE/$namedgraph/;
                         $objecttypesSPARQL =~ s/SUBJECT_TYPE_HERE/$stype/;
@@ -161,6 +174,14 @@ foreach my $namespace(sort(keys %dataset_endpoints)){
                         
                         my $otypequery = RDF::Query::Client->new($objecttypesSPARQL); # query for all output types of the form xxx_vocabulary:Resource
                         my $oiterator = $otypequery->execute($endpoint,  {Parameters => {timeout => 380000, format => 'application/sparql-results+json'}});
+
+                        unless ($oiterator){
+                                print "          ---------no predicate types found -----------\n";
+                                open (ERR, ">>SPARQLerrors.list") || die "can't open error file $!\n";
+                                print ERR "$endpoint, $objecttypesSPARQL\n\n";
+                                close ERR;
+                                next;
+                        }
 
                         my $FLAG = 0;   # this is a flag that is up when it is a resource object, and down when it is a datatype object
                         if ($oiterator){
@@ -225,21 +246,40 @@ foreach my $namespace(sort(keys %dataset_endpoints)){
                         $datatypesSPARQL =~ s/NAMED_GRAPH_HERE/$namedgraph/;
                         $datatypesSPARQL =~ s/SUBJECT_TYPE_HERE/$stype/;
                         $datatypesSPARQL =~ s/PREDICATE_TYPE_HERE/$ptype/;
-                        
+
                         my $diterator;
-                        #  this code removed since it makes the endpoint very unhappy to execute this query right now.
-                        # default to string for the moment
-                        #my $dtypequery = RDF::Query::Client->new($datatypesSPARQL); # query for all output types of the form xxx_vocabulary:Resource
-                        #$dtypequery->useragent->default_headers->header(Accept => "text/plain");
-                        #$diterator = $dtypequery->execute($endpoint,  {Parameters => {timeout => 380000, format => 'text/plain'}});
-                        unless ($diterator){print "          ---------no data types found for $stype $ptype defaulting to STRING-----------\n";
+                       
+                       
+                        my $dtypequery = RDF::Query::Client->new($datatypesSPARQL); # query for all output types of the form xxx_vocabulary:Resource
+                        $dtypequery->useragent->default_headers->header(Accept => "text/plain");
+                        $diterator = $dtypequery->execute($endpoint,  {Parameters => {timeout => 380000, format => 'text/plain'}});
+                        my $content = $dtypequery->{results}->[0]->{response}->content;
+                        if ($content =~ m"(http://www.w3.org/2001/XMLSchema#\S+)>"s) {
+                                print "           Found Triple Pattern:     $stype $ptype $1\n";
+                                print OUT "$namespace\t$stype\t$ptype\t$1\n";
+                                print OUT "$namespace\t$base_input_type\t$ptype\t$1\n" if $base_input_type;
+                                
+                        } else {
+                                print "          ---------no data types found for $stype $ptype defaulting to STRING-----------\n";
                                 my $otype = "http://www.w3.org/2001/XMLSchema#string";
                                 print "           Found Triple Pattern:     $stype $ptype $otype\n";
                                 print OUT "$namespace\t$stype\t$ptype\t$otype\n";
                                 print OUT "$namespace\t$base_input_type\t$ptype\t$otype\n" if $base_input_type;
-                                next;
+                                
                         }
                         
+                        
+                        # this code removed since because of a bug in the current version of Virtuoso
+                        # need to ask for plain text response instead of json, and reach into the output object instead of letting the library parse it
+                        #unless ($diterator){
+                        #        print "          ---------no data types found for $stype $ptype defaulting to STRING-----------\n";
+                        #        my $otype = "http://www.w3.org/2001/XMLSchema#string";
+                        #        print "           Found Triple Pattern:     $stype $ptype $otype\n";
+                        #        print OUT "$namespace\t$stype\t$ptype\t$otype\n";
+                        #        print OUT "$namespace\t$base_input_type\t$ptype\t$otype\n" if $base_input_type;
+                        #        next;
+                        #}
+                        #
                         #while (my $row = $diterator->next){
                         #        my $otype = $row->{datatype}->[0];  # oddly, if you don't group-by it is ->[1], but the query often crashes!
                         #        $otype = $row->{datatype}->[1] unless $otype;  # this is a bug in virtuoso!
@@ -268,7 +308,10 @@ sub getSpecificObjectTypes {  # there should never be more than one specific typ
         my $otypequery = RDF::Query::Client->new($sparql); # query for all output types of the form xxx_vocabulary:Resource
         my $oiterator = $otypequery->execute($endpoint,  {Parameters => {timeout => 380000, format => 'application/sparql-results+json'}});
         unless ($oiterator){
-                print "          ---------no SPECIFIC object types found for $otype -----------\n";
+                print "          ---------no more specific types found -----------\n";
+                open (ERR, ">>SPARQLerrors.list") || die "can't open error file $!\n";
+                print ERR "$endpoint, $sparql\n\n";
+                close ERR;
                 return undef;
         }
         my @otypes;

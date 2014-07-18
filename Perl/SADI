@@ -12,6 +12,7 @@ package OpenLifeData_WRAPPER;
 use strict;
 use warnings;
 use SADI::Simple 0.007;
+use RDF::Trine;
 use XML::SAX;
 use Log::Log4perl qw(:easy);
 use base 'SADI::Simple::SyncService';  # 'SADI::Simple::SyncService' or 'SADI::Simple::AsyncService'
@@ -141,27 +142,32 @@ sub process_it {
 
     my ($self, $inputs, $input_model, $output_model) = @_;
 
-    my $RDFtype = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+    my $rdfs = RDF::Trine::Namespace->new(  'http://www.w3.org/2000/01/rdf-schema#');
+    my $rdf =  RDF::Trine::Namespace->new( 'http://www.w3.org/1999/02/22-rdf-syntax-ns#');
+
 
     foreach my $input (@$inputs) {
 
     	my $inputURIString = $input->as_string;
 		$sparql =~ s/\%VAR/$inputURIString/;  # substitute the SPARQL variable with the URI of the input data
-#print STDERR "\n\n\n\n$sparql\n\n\n\n";
+
 		my $query = RDF::Query::Client->new($sparql);
-#		my $iterator = $query->execute($CFG->{'ORIGINAL_ENDPOINT'});  # execute the query against the URL of the endpoint
 		my $iterator = $query->execute($CFG->{'GENERIC_ENDPOINT'}.'/',  {Parameters => {timeout => 380000, format => 'application/sparql-results+json'}});  # execute the query against the URL of the endpoint
 		if ($iterator){ 
 			while (my $row = $iterator->next) {
    				# $row is a HASHref containing variable name -> RDF Term bindings
    				my $result = $row->{ 'obj' }->as_string;
+   				my $label = $row->{ 'label' }?$row->{'label'}->as_string:"";
 				my $statement = &statement($input, $CFG->{'PREDICATE_URI'}, $result); 
-	        		$output_model->add_statement($statement, $input);
+	        		$output_model->add_statement($statement, $input);  # the "input" at the end is for the QUADS - NanoPublications need the context, which in this case is based on the input node being processed
 
 				unless ($statement->object->is_literal){
 					my $object = $statement->object;
-					my $statement2 = &statement($object, $RDFtype, $CFG->{'OBJECT_TYPE'});
+					my $statement2 = &statement($object, $rdf->type, $CFG->{'OBJECT_TYPE'});
 					$output_model->add_statement($statement2, $input);
+					next unless $label;
+					my $statement3 = &statement($object, $rdfs->label, $label );
+					$output_model->add_statement($statement3, $input);
 				}
 				$output_model->nanopublish_result_for($input);
 			}
