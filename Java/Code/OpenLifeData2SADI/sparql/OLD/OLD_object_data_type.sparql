@@ -1,0 +1,8 @@
+SELECT (datatype(?o) AS ?dt)
+FROM <@NAMED_GRAPH>
+WHERE {
+ ?s a <@SUBJECT_TYPE> .
+?s <@PREDICATE_TYPE> ?o .
+ FILTER isLiteral(?o)
+}
+LIMIT 1

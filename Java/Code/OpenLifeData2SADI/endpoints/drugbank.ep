@@ -1,0 +1,3 @@
+ENDPOINT=http://openlifedata.org/drugbank/sparql/
+NAME=drugbank
+RESOURCE_OBJECT = http://openlifedata.org/drugbank_vocabulary:Resource

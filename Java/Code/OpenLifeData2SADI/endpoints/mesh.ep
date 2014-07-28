@@ -1,0 +1,3 @@
+ENDPOINT=http://openlifedata.org/mesh/sparql/
+NAME=mesh
+RESOURCE_OBJECT = http://openlifedata.org/mesh_vocabulary:Resource

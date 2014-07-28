@@ -1,0 +1,6 @@
+SELECT distinct ?p
+FROM <@NAMED_GRAPH>
+WHERE {
+ ?s a <@SUBJECT_TYPE> .
+?s ?p ?o .   
+}

@@ -1,0 +1,5 @@
+SELECT distinct ?stype
+FROM <@NAMED_GRAPH>
+WHERE {
+ ?s a ?stype .
+}

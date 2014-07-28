@@ -1,0 +1,10 @@
+SELECT distinct ?o
+WHERE { 
+	SERVICE <@LOCAL_ENDPOINT>  {
+		SELECT ?s { ?s a <@OBJECT_TYPE> }
+		LIMIT @QUERY_LIMIT 
+	}
+    SERVICE <@REMOTE_ENDPOINT> { 
+		?s a ?o .
+   }
+}

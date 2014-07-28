@@ -1,0 +1,7 @@
+SELECT distinct ?otype
+FROM <@NAMED_GRAPH>
+WHERE {
+ ?s a <@SUBJECT_TYPE> .
+?s <@PREDICATE_TYPE> ?o .
+?o a ?otype
+}

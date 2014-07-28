@@ -1,0 +1,4 @@
+SELECT distinct ?g
+WHERE {
+  graph ?g {?a ?b ?c}
+}

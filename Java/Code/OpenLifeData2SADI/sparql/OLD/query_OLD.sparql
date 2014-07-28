@@ -1,0 +1,15 @@
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX void: <http://rdfs.org/ns/void#>
+PREFIX bio2rdf: <http://bio2rdf.org/>
+
+SELECT ?subjectType ?aPred ?objType
+FROM <@DATASET>
+WHERE {
+ ?s a ?subjectType .
+ ?s ?aPred ?o .
+ ?o a ?objType .
+
+ FILTER (?aPred != void:inDataset)
+}
+group by ?subjectType ?aPred ?objType

@@ -1,0 +1,3 @@
+ENDPOINT=http://openlifedata.org/dbsnp/sparql/
+NAME=dbsnp
+RESOURCE_OBJECT = http://openlifedata.org/dbsnp_vocabulary:Resource

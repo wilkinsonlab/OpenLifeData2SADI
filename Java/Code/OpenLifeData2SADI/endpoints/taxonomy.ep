@@ -1,0 +1,3 @@
+ENDPOINT=http://openlifedata.org/taxonomy/sparql/
+NAME=taxonomy
+RESOURCE_OBJECT = http://openlifedata.org/taxonomy_vocabulary:Resource
