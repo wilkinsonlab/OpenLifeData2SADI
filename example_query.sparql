@@ -1,0 +1,13 @@
+PREFIX hgnc: <http://openlifedata.org/hgnc_vocabulary:>
+PREFIX omim: <http://openlifedata.org/omim_vocabulary:>
+PREFIX mgi: <http://openlifedata.org/mgi_vocabulary:>
+SELECT *
+FROM <http://biordf.org/sampledata_hgnc.rdf>
+WHERE {
+    <http://openlifedata.org/hgnc:7> hgnc:approved-name ?name .
+    <http://openlifedata.org/hgnc:7> hgnc:x-omim ?omim .
+    ?omim omim:gene-function ?function .
+    ?omim omim:article ?article .
+    ?omim omim:x-mgi ?mgi .
+    ?mgi  mgi:x-uniprot ?up
+}

@@ -1,5 +1,6 @@
 #!/usr/bin/perl -w
 use strict;
+use Try::Tiny;
 
 =head1 NAME
 
@@ -40,9 +41,11 @@ my $generatedBy = $opmw->isGeneratedBy;
 my $wfData = $opmw->WorkflowTemplateArtifact;
 my $wfServ = $opmw->WorkflowTemplateProcess;
 
-# the regexp in this query is in teh very last line
-# you need to modify this for your own case
-my $query = <<EOQ;
+open(OUT, ">OpenLifeData2SADI2OPMW.ttl") || die "can't create output file $!\n";
+close OUT;
+
+
+my $pairquery = <<EOQ;
 PREFIX  dc:   <http://protege.stanford.edu/plugins/owl/dc/protege-dc.owl#>
 PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX  sadi: <http://sadiframework.org/ontologies/sadi.owl#>
@@ -50,77 +53,148 @@ PREFIX  xsd:  <http://www.w3.org/2001/XMLSchema#>
 PREFIX  owl:  <http://www.w3.org/2002/07/owl#>
 PREFIX  rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX  serv: <http://www.mygrid.org.uk/mygrid-moby-service#>
-SELECT distinct(?s1) ?output_type ?name1 ?desc1 ?s2 ?name2 ?desc2
+
+ SELECT distinct ?s1 ?s2 
 FROM <http://sadiframework.org/registry/>
 WHERE
   { ?s1 rdf:type serv:serviceDescription .
     ?s2 rdf:type serv:serviceDescription .
-    ?s1 serv:hasServiceDescriptionText ?desc1 .
-    ?s2 serv:hasServiceDescriptionText ?desc2 .
+
+    ?s1 serv:providedBy ?org .
+    ?org dc:publisher "openlifedata2sadi.wilkinsonlab.info" .
     ?s2 serv:hasOperation ?operation2 .
-    ?s1 serv:hasServiceNameText ?name1 .
-    ?s2 serv:hasServiceNameText ?name2 .
 
     ?s1 sadi:decoratesWith ?blank .
     ?blank owl:someValuesFrom ?output_type .
 
     ?operation2 serv:inputParameter ?in2 .
     ?in2  serv:objectType ?output_type .
-    FILTER(regex(?s1, "OpenLifeData2SADI")) .
 
   }
 
-
 EOQ
 
- my $client = RDF::Query::Client->new($query);
- 
- my $iterator = $client->execute('http://sadiframework.org/registry/sparql');
- 
- while (my $row = $iterator->next) {
-    my ($serv1, $datatype, $name1, $desc1, $serv2, $name2, $desc2) = (
-            $row->{s1}->as_string,
-            $row->{output_type}->as_string,
-            $row->{name1}->as_string,
-            $row->{desc1}->as_string,
-            $row->{s2}->as_string,
-            $row->{name2}->as_string,
-            $row->{desc2}->as_string);
-    print STDERR join "\t", ($serv1, $datatype, $name1, $desc1, $serv2, $name2, $desc2), "\n\n";
-    
-    my $stm;    
-    $stm = statement($serv1, $type, $wfServ);
-    $model->add_statement($stm);
-    $stm = statement($serv1, $label, $name1);
-    $model->add_statement($stm);
-    $stm = statement($serv1, $comment, $desc1);
-    $model->add_statement($stm);
-    
-    
-    $stm = statement($datatype, $type, $wfData);
-    $model->add_statement($stm);
-    $stm = statement($serv2, $uses, $datatype); 
-    $model->add_statement($stm);
-    $stm = statement($serv2, $label, $name2); 
-    $model->add_statement($stm);
-    $stm = statement($serv2, $comment, $desc2); 
-    $model->add_statement($stm);
-    
-    $stm = statement($datatype, $generatedBy, $serv1);
-    $model->add_statement($stm);
-    
-    
- }
 
- my $serializer = RDF::Trine::Serializer::Turtle->new(namespaces => {
-                                                                     opmw => 'http://www.opmw.org/ontology/',
-                                                                     rdfs => 'http://www.w3.org/2000/01/rdf-schema#',
-                                                                     rdf => 'http://www.w3.org/1999/02/22-rdf-syntax-ns#'});
- 
- my $turtle = $serializer->serialize_model_to_string($model);
- open(OUT, ">OpenLifeData2SADI2OPMW.ttl") || die "can't open output $!\n";
- print OUT $turtle;
- close OUT;
+my $detailsquery = <<EOQ2;
+PREFIX  dc:   <http://protege.stanford.edu/plugins/owl/dc/protege-dc.owl#>
+PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX  sadi: <http://sadiframework.org/ontologies/sadi.owl#>
+PREFIX  xsd:  <http://www.w3.org/2001/XMLSchema#>
+PREFIX  owl:  <http://www.w3.org/2002/07/owl#>
+PREFIX  rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX  serv: <http://www.mygrid.org.uk/mygrid-moby-service#>
+
+ SELECT ?name1 ?name2 ?desc1 ?desc2 ?output_type 
+FROM <http://sadiframework.org/registry/>
+WHERE
+  { SERV1 rdf:type serv:serviceDescription .
+    SERV2 rdf:type serv:serviceDescription .
+    SERV1 serv:providedBy ?org . 
+    ?org dc:publisher "openlifedata2sadi.wilkinsonlab.info" .
+    SERV1 serv:hasServiceDescriptionText ?desc1 .
+    SERV2 serv:hasServiceDescriptionText ?desc2 .
+    SERV2 serv:hasOperation ?operation2 .
+    SERV1 serv:hasServiceNameText ?name1 .
+    SERV2 serv:hasServiceNameText ?name2 .
+
+    SERV1 sadi:decoratesWith ?blank .
+    ?blank owl:someValuesFrom ?output_type .
+
+    ?operation2 serv:inputParameter ?in2 .
+    ?in2  serv:objectType ?output_type .
+
+  }
+
+EOQ2
+
+   my $client = RDF::Query::Client->new($pairquery);
+   print STDERR "\n\nExecuting query\n$pairquery\n\n";
+   
+
+    my $iterator;    
+    $iterator = $client->execute('http://sadiframework.org/registry/sparql', {Parameters => {timeout => 380000, format => 'application/sparql-results+json'}});
+   die $client->error if $client->error;
+   die "\n\nquery $pairquery failed\n\n" unless $iterator;
+
+	my %services;
+	while (my $row = $iterator->next) {
+        	my ($serv1,$serv2) = (
+			$row->{s1}->as_string,
+			$row->{s2}->as_string);
+		$services{"$serv1$serv2"} = [$serv1, $serv2];
+	}       # this is just to get a non-redundant list
+
+	foreach my $pair(keys %services){
+                my ($serv1, $serv2) = @{$services{"$pair"}};   # s1 feeds s2
+
+		#  now we need to get the details for each pair (doing this as a single operation results in an HTTP timeout... huge result set!)
+		my $thisdetailsquery = $detailsquery; # need to make a copy because we're doing variable substitutino in the template
+		$thisdetailsquery =~ s/SERV1/$serv1/gs;	
+		$thisdetailsquery =~ s/SERV2/$serv2/gs;
+
+		my $client = RDF::Query::Client->new($thisdetailsquery);
+
+		sleep 1;
+		print STDERR "\n\nExecuting query\n$thisdetailsquery\n\n";
+   
+		my $iterator;    
+    		$iterator = $client->execute('http://sadiframework.org/registry/sparql', {Parameters => {format => 'application/sparql-results+json'}});
+		die $client->error if $client->error;
+		unless ($iterator) {
+			print "\n\nQuery Failed, trying again\n\n";
+			sleep 15;
+	    		$iterator = $client->execute('http://sadiframework.org/registry/sparql', {Parameters => {format => 'application/sparql-results+json'}});
+			die $client->error if $client->error;
+			die "query failed" unless $iterator;
+		}		
+		while (my $row = $iterator->next){
+
+			my ($name1, $name2, $desc1, $desc2, $datatype) = (
+				$row->{name1}->as_string,
+				$row->{name2}->as_string,
+				$row->{desc1}->as_string,
+				$row->{desc2}->as_string,
+				$row->{output_type}->as_string);
+
+			print STDERR join "\t", ($serv1, $datatype, $name1, $desc1, $serv2, $name2, $desc2), "\n\n";
+
+		       my $stm;
+			$stm = statement($serv1, $type, $wfServ);
+	       		$model->add_statement($stm);
+       			$stm = statement($serv1, $label, $name1);
+       			$model->add_statement($stm);
+       			$stm = statement($serv1, $comment, $desc1);
+       			$model->add_statement($stm);
+       
+       
+		       $stm = statement($datatype, $type, $wfData);
+       			$model->add_statement($stm);
+       			$stm = statement($serv2, $uses, $datatype); 
+       			$model->add_statement($stm);
+       			$stm = statement($serv2, $label, $name2); 
+       			$model->add_statement($stm);
+       			$stm = statement($serv2, $comment, $desc2); 
+       			$model->add_statement($stm);
+       
+       			$stm = statement($datatype, $generatedBy, $serv1);
+       			$model->add_statement($stm);
+       
+       
+		}
+   
+	}  # loop and do the next pair
+
+print STDERR "NOW SERIALIZING.... this may take a while...";
+
+my $serializer = RDF::Trine::Serializer::Turtle->new(namespaces => {
+                                                                    opmw => 'http://www.opmw.org/ontology/',
+                                                                    rdfs => 'http://www.w3.org/2000/01/rdf-schema#',
+                                                                    rdf => 'http://www.w3.org/1999/02/22-rdf-syntax-ns#'});
+
+my $turtle = $serializer->serialize_model_to_string($model);
+open(OUT, ">>OpenLifeData2SADI2OPMW.ttl") || die "can't open output $!\n";
+print OUT $turtle;
+close OUT;
 
 
 
