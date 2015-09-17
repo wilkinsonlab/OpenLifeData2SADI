@@ -81,39 +81,29 @@ my %dataset_endpoints;
 
 open(OUT, ">>endpoint_datatypes.list") || die "can't open output file for writing $!\n";
 
+#my $endpoint = "http://sparql.openlifedata.org/";
+my $endpoint = "http://s5.semanticscience.org:8890/sparql";
 
-# need to screen-scrape the endpoints from Michel's web page
-my $openlifedataendpoints = get('http://openlifedata.org/');
-$openlifedataendpoints =~ s/content\-type.*//gs;
-my @namespaces = ($openlifedataendpoints =~ m'<td>([a-z]+)</td>'gs);
-foreach my $namespace(@namespaces){
+my $graphquery = RDF::Query::Client->new($namedgSPARQL);
+my $iterator = $graphquery->execute($endpoint,  {Parameters => {timeout => 380000, format => 'application/sparql-results+json'}});
+die "can't connect to endpoint\n" unless $iterator;  # in case endpoint is down
+my $namedgraph;
+my $highest=0;
+# New Format is
+# http://bio2rdf.org/affymetrix_resource:bio2rdf.dataset.affymetrix.R3
 
-# these are filtered-out at the moment, since I didn't think
-# the data they contained (in the format they contain it) was
-# modeled in a manner that would be particularly useful in a SADI service
+while (my $row = $iterator->next){
+        next unless ($row->{graph}->[1] =~ /\.([^\.]+)\.R3$/);
+        my $namespace = $1;
         next if $namespace eq "ndc";
         next if $namespace eq "lsr";
         next if $namespace eq "bioportal";
-
-
-        my $endpoint = "http://openlifedata.org/$namespace/sparql/";
-        die "not found $namespace\n\n" unless $endpoint;
-
-        my $graphquery = RDF::Query::Client->new($namedgSPARQL);
-        my $iterator = $graphquery->execute($endpoint,  {Parameters => {timeout => 380000, format => 'application/sparql-results+json'}});
-        next unless $iterator;  # in case endpoint is down
-        my $namedgraph;
-        my $highest=0;
-        while (my $row = $iterator->next){
-                next if $row->{graph}->[1] =~ /statistics/;
-                next unless ($row->{graph}->[1] =~ /openlifedata\.dataset/);
-                $namedgraph = $row->{graph}->[1];
-                print "$namespace, $namedgraph, $endpoint\n";
-        }
-
+        $namedgraph = $row->{graph}->[1];
+        print "$namespace, $namedgraph, $endpoint\n";
         $dataset_endpoints{$namespace} = [$endpoint, $namedgraph];
-        
 }
+
+        
 
 foreach my $namespace(sort(keys %dataset_endpoints)){
         my ($endpoint, $namedgraph) = @{$dataset_endpoints{$namespace}};
@@ -200,8 +190,17 @@ foreach my $namespace(sort(keys %dataset_endpoints)){
                                                 print OUT "$namespace\t$stype\t$ptype\t$otype\n";
                                                 print OUT "$namespace\t$base_input_type\t$ptype\t$otype\n" if $base_input_type;
                                         } else {  # this is one of those generic bio2rdf REsource types, so try to figure out a more specific type with a federated query
-
-                                                die "can't match $otype to determine Bio2RDF namespace" unless ($otype =~ m|openlifedata\.org/([^_]+)_|);  # match everything after the / and up to the next '_'
+                                                
+                                                
+                                                next;
+                                                
+                                                
+                                                
+                                                
+                                                
+                                                
+                                                #die "can't match $otype to determine Bio2RDF namespace" unless ($otype =~ m|openlifedata\.org/([^_]+)_|);  # match everything after the / and up to the next '_'
+                                                die "can't match $otype to determine Bio2RDF namespace" unless ($otype =~ m|bio2rdf\.org/([^_]+)_|);  # match everything after the / and up to the next '_'
                                                 my $remotenamespace = $1;
                                                 print "checking $remotenamespace\n";   # is this a namespace that we have heard of before?
                 
