@@ -1,0 +1,8 @@
+http://s5.semanticscience.org:8890/sparql, SELECT distinct(?p)
+FROM <http://bio2rdf.org/ctd_resource:bio2rdf.dataset.ctd.R3>
+WHERE {
+ ?s a <http://bio2rdf.org/ctd_vocabulary:Gene-Disease-Association> .
+?s ?p ?o .   
+}
+
+

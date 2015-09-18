@@ -60,7 +60,7 @@ my %to_deregister;
         $to_deregister{$servname} = 1;
  }
 
-#exit 1;
+exit 1;
 
 
 
