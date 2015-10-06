@@ -41,7 +41,7 @@ while (my $line = <ENDPOINTDATATYPES>) {
     my $outputNamespace = $1;
     my $outputAddedLabel = $2;
     
-    my $servicename = $inputLabel . "_". $predicateNamespace ."_". $predicateLabel . "_" . $outputNamespace . "_" . $outputAddedLabel;
+    my $servicename = $inputLabel . "_". $predicateNamespace ."_". $predicateLabel;
     my $outputURI = "http://biordf.org/$ontologyfolder/$endpoint/$servicename.owl#ServiceOutput";
     
     unless (-e $ontologyfolder){
