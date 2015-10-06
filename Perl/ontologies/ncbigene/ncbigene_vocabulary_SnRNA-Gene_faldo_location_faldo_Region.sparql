@@ -1,0 +1,5 @@
+SELECT *
+        WHERE {
+	?obj <http://biohackathon.org/resource/faldo#location> %VAR.
+	OPTIONAL {?obj  rdfs:label ?label}
+}

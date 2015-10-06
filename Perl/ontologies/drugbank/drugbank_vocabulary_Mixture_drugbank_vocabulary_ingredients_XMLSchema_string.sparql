@@ -1,0 +1,5 @@
+SELECT *
+        WHERE {
+	?obj <http://bio2rdf.org/drugbank_vocabulary:ingredients> %VAR.
+	OPTIONAL {?obj  rdfs:label ?label}
+}

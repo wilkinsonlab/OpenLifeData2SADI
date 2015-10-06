@@ -1,0 +1,5 @@
+SELECT *
+        WHERE {
+	?obj <http://bio2rdf.org/bio2rdf_vocabulary:x-identifiers.org> %VAR.
+	OPTIONAL {?obj  rdfs:label ?label}
+}

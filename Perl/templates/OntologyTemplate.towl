@@ -1,0 +1,52 @@
+<?xml version="1.0"?>
+<rdf:RDF xmlns="ONTOLOGY_URI#"
+     xml:base="ONTOLOGY_URI"
+     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+     xmlns:owl="http://www.w3.org/2002/07/owl#"
+     xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#">
+    <owl:Ontology rdf:about="ONTOLOGY_URI"/>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Object Properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+       <owl:ObjectProperty rdf:about="PREDICATE_URI"/>
+    
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Classes
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+
+
+    <owl:Class rdf:about="OUTPUT_CLASS_URI">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="INPUT_CLASS_URI"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="PREDICATE_URI"/>
+                        <owl:someValuesFrom rdf:resource="ADDED_CLASS_URI"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+    </owl:Class>
+    
+    <owl:Class rdf:about="ADDED_CLASS_URI"/>
+  
+
+    <owl:Class rdf:about="INPUT_CLASS_URI"/>
+
+</rdf:RDF>

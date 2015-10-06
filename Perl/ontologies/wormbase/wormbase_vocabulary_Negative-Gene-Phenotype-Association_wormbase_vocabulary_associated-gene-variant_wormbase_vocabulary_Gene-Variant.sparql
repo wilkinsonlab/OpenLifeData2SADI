@@ -1,0 +1,5 @@
+SELECT *
+        WHERE {
+	?obj <http://bio2rdf.org/wormbase_vocabulary:associated-gene-variant> %VAR.
+	OPTIONAL {?obj  rdfs:label ?label}
+}

@@ -1,0 +1,5 @@
+SELECT *
+        WHERE {
+	?obj <http://bio2rdf.org/kegg_vocabulary:journal> %VAR.
+	OPTIONAL {?obj  rdfs:label ?label}
+}

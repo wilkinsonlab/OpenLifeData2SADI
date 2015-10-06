@@ -1,0 +1,67 @@
+<?xml version="1.0"?>
+<rdf:RDF xmlns="http://biordf.org/ontologies/ncbigene/ncbigene_vocabulary_NcRNA-Gene_ncbigene_vocabulary_assembly_XMLSchema_string.owl#"
+     xml:base="http://biordf.org/ontologies/ncbigene/ncbigene_vocabulary_NcRNA-Gene_ncbigene_vocabulary_assembly_XMLSchema_string.owl"
+     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+     xmlns:owl="http://www.w3.org/2002/07/owl#"
+     xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#">
+    <owl:Ontology rdf:about="http://biordf.org/ontologies/ncbigene/ncbigene_vocabulary_NcRNA-Gene_ncbigene_vocabulary_assembly_XMLSchema_string.owl"/>
+    
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Datatypes
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+    <rdfs:Datatype rdf:about="http://www.w3.org/2001/XMLSchema#string"/>
+    
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Data properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+    <owl:DatatypeProperty rdf:about="http://bio2rdf.org/ncbigene_vocabulary:assembly"/>
+    
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Classes
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+
+
+    <owl:Class rdf:about="http://biordf.org/ontologies/ncbigene/ncbigene_vocabulary_NcRNA-Gene_ncbigene_vocabulary_assembly_XMLSchema_string.owl#ServiceOutput">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://bio2rdf.org/ncbigene_vocabulary:NcRNA-Gene"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://bio2rdf.org/ncbigene_vocabulary:assembly"/>
+                        <owl:someValuesFrom rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+    </owl:Class>
+    
+
+
+
+    <owl:Class rdf:about="http://bio2rdf.org/ncbigene_vocabulary:NcRNA-Gene"/>
+
+
+</rdf:RDF>
+

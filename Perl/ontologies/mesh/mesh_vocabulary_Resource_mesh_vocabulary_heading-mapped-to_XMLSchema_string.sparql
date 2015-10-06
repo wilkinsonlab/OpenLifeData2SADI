@@ -1,0 +1,5 @@
+SELECT *
+        WHERE {
+	?obj <http://bio2rdf.org/mesh_vocabulary:heading-mapped-to> %VAR.
+	OPTIONAL {?obj  rdfs:label ?label}
+}

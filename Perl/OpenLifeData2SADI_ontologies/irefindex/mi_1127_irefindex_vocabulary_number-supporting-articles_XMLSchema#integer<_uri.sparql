@@ -1,0 +1,5 @@
+SELECT *
+        WHERE {
+	?obj <http://bio2rdf.org/irefindex_vocabulary:number-supporting-articles> %VAR.
+	OPTIONAL {?obj  rdfs:label ?label}
+}

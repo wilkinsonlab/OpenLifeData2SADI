@@ -1,0 +1,5 @@
+SELECT *
+        WHERE {
+	?obj <http://bio2rdf.org/clinicaltrials_vocabulary:firstreceived-results-date> %VAR.
+	OPTIONAL {?obj  rdfs:label ?label}
+}
