@@ -1,5 +1,0 @@
-SELECT *
-        WHERE {
-	?obj <http://bio2rdf.org/wormbase_vocabulary:rnai> %VAR.
-	OPTIONAL {?obj  rdfs:label ?label}
-}

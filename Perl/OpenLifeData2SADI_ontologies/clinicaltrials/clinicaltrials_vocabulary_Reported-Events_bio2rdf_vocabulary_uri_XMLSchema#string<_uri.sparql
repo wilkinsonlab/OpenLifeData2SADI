@@ -1,5 +1,0 @@
-SELECT *
-        WHERE {
-	?obj <http://bio2rdf.org/bio2rdf_vocabulary:uri> %VAR.
-	OPTIONAL {?obj  rdfs:label ?label}
-}

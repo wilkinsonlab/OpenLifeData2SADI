@@ -1,5 +1,0 @@
-SELECT *
-        WHERE {
-	?obj <http://purl.org/dc/terms/created> %VAR.
-	OPTIONAL {?obj  rdfs:label ?label}
-}

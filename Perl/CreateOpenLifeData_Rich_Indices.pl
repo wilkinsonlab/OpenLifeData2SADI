@@ -79,7 +79,7 @@ WHERE {
 
 my %dataset_endpoints;
 
-open(OUT, ">>endpoint_datatypes.list") || die "can't open output file for writing $!\n";
+open(OUT, ">endpoint_datatypes.list") || die "can't open output file for writing $!\n";
 
 my $endpoint = "http://sparql.openlifedata.org/";
 #my $endpoint = "http://s5.semanticscience.org:8890/sparql";
@@ -92,6 +92,9 @@ my $highest=0;
 # New Format is
 # http://bio2rdf.org/affymetrix_resource:bio2rdf.dataset.affymetrix.R3
 
+
+# now that Michel has all data in one endpoint, this isn't as useful
+# we may need to add it back if he starts using graphs for versioning again...
 while (my $row = $iterator->next){
         next unless ($row->{graph}->[1] =~ /\.([^\.]+)\.R3$/);
         my $namespace = $1;
@@ -253,7 +256,7 @@ foreach my $namespace(sort(keys %dataset_endpoints)){
                         $dtypequery->useragent->default_headers->header(Accept => "text/plain");
                         $diterator = $dtypequery->execute($endpoint,  {Parameters => {timeout => 380000, format => 'text/plain'}});
                         my $content = $dtypequery->{results}->[0]->{response}->content;
-                        if ($content =~ m"(http://www.w3.org/2001/XMLSchema#\S+)>"s) {
+                        if ($content =~ m"(http://www.w3.org/2001/XMLSchema#\S+?)\<"s) {
                                 print "           Found Triple Pattern:     $stype $ptype $1\n";
                                 print OUT "$namespace\t$stype\t$ptype\t$1\n";
                                 print OUT "$namespace\t$base_input_type\t$ptype\t$1\n" if $base_input_type;

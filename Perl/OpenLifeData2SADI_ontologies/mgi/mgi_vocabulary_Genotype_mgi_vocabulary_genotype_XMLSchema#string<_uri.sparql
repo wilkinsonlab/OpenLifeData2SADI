@@ -1,5 +1,0 @@
-SELECT *
-        WHERE {
-	?obj <http://bio2rdf.org/mgi_vocabulary:genotype> %VAR.
-	OPTIONAL {?obj  rdfs:label ?label}
-}

@@ -1,5 +1,0 @@
-SELECT *
-        WHERE {
-	?obj <http://bio2rdf.org/drugbank_vocabulary:drug-classification-category> %VAR.
-	OPTIONAL {?obj  rdfs:label ?label}
-}

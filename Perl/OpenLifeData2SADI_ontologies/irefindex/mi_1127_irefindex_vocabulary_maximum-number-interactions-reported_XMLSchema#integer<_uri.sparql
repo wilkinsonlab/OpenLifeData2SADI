@@ -1,5 +1,0 @@
-SELECT *
-        WHERE {
-	?obj <http://bio2rdf.org/irefindex_vocabulary:maximum-number-interactions-reported> %VAR.
-	OPTIONAL {?obj  rdfs:label ?label}
-}
