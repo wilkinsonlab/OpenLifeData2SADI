@@ -1,0 +1,52 @@
+<?xml version="1.0"?>
+<rdf:RDF xmlns="http://biordf.org/./OpenLifeData2SADI_ontologies/omim/omim_vocabulary_Phenotype-Map_omim_vocabulary_phenotypeMimNumber_omim_vocabulary_Phenotype.owl#"
+     xml:base="http://biordf.org/./OpenLifeData2SADI_ontologies/omim/omim_vocabulary_Phenotype-Map_omim_vocabulary_phenotypeMimNumber_omim_vocabulary_Phenotype.owl"
+     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+     xmlns:owl="http://www.w3.org/2002/07/owl#"
+     xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#">
+    <owl:Ontology rdf:about="http://biordf.org/./OpenLifeData2SADI_ontologies/omim/omim_vocabulary_Phenotype-Map_omim_vocabulary_phenotypeMimNumber_omim_vocabulary_Phenotype.owl"/>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Object Properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+       <owl:ObjectProperty rdf:about="http://bio2rdf.org/omim_vocabulary:phenotypeMimNumber"/>
+    
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Classes
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+
+
+    <owl:Class rdf:about="http://biordf.org/./OpenLifeData2SADI_ontologies/omim/omim_vocabulary_Phenotype-Map_omim_vocabulary_phenotypeMimNumber_omim_vocabulary_Phenotype.owl#ServiceOutput">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://bio2rdf.org/omim_vocabulary:Phenotype-Map"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://bio2rdf.org/omim_vocabulary:phenotypeMimNumber"/>
+                        <owl:someValuesFrom rdf:resource="http://bio2rdf.org/omim_vocabulary:Phenotype"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+    </owl:Class>
+    
+    <owl:Class rdf:about="http://bio2rdf.org/omim_vocabulary:Phenotype"/>
+  
+
+    <owl:Class rdf:about="http://bio2rdf.org/omim_vocabulary:Phenotype-Map"/>
+
+</rdf:RDF>

@@ -1,0 +1,5 @@
+SELECT *
+        WHERE {
+	?obj <http://bio2rdf.org/drugbank_vocabulary:general-function> %VAR.
+	OPTIONAL {?obj  rdfs:label ?label}
+}

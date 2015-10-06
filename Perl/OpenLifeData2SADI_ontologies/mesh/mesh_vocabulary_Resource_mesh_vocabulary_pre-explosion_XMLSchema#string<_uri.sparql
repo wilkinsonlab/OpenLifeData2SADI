@@ -1,0 +1,5 @@
+SELECT *
+        WHERE {
+	?obj <http://bio2rdf.org/mesh_vocabulary:pre-explosion> %VAR.
+	OPTIONAL {?obj  rdfs:label ?label}
+}

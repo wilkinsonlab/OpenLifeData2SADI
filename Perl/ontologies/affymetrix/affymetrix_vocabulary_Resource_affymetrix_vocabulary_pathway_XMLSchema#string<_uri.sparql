@@ -1,0 +1,5 @@
+SELECT *
+        WHERE {
+	?obj <http://bio2rdf.org/affymetrix_vocabulary:pathway> %VAR.
+	OPTIONAL {?obj  rdfs:label ?label}
+}

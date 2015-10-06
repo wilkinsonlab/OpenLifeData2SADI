@@ -1,0 +1,52 @@
+<?xml version="1.0"?>
+<rdf:RDF xmlns="http://biordf.org/./OpenLifeData2SADI_ontologies/sgd/sgd_vocabulary_SuperPathway_sgd_vocabulary_has-proper-part_sgd_vocabulary_SuperPathway.owl#"
+     xml:base="http://biordf.org/./OpenLifeData2SADI_ontologies/sgd/sgd_vocabulary_SuperPathway_sgd_vocabulary_has-proper-part_sgd_vocabulary_SuperPathway.owl"
+     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+     xmlns:owl="http://www.w3.org/2002/07/owl#"
+     xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#">
+    <owl:Ontology rdf:about="http://biordf.org/./OpenLifeData2SADI_ontologies/sgd/sgd_vocabulary_SuperPathway_sgd_vocabulary_has-proper-part_sgd_vocabulary_SuperPathway.owl"/>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Object Properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+       <owl:ObjectProperty rdf:about="http://bio2rdf.org/sgd_vocabulary:has-proper-part"/>
+    
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Classes
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+
+
+    <owl:Class rdf:about="http://biordf.org/./OpenLifeData2SADI_ontologies/sgd/sgd_vocabulary_SuperPathway_sgd_vocabulary_has-proper-part_sgd_vocabulary_SuperPathway.owl#ServiceOutput">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://bio2rdf.org/sgd_vocabulary:SuperPathway"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://bio2rdf.org/sgd_vocabulary:has-proper-part"/>
+                        <owl:someValuesFrom rdf:resource="http://bio2rdf.org/sgd_vocabulary:SuperPathway"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+    </owl:Class>
+    
+    <owl:Class rdf:about="http://bio2rdf.org/sgd_vocabulary:SuperPathway"/>
+  
+
+    <owl:Class rdf:about="http://bio2rdf.org/sgd_vocabulary:SuperPathway"/>
+
+</rdf:RDF>

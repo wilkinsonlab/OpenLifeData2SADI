@@ -1,0 +1,67 @@
+<?xml version="1.0"?>
+<rdf:RDF xmlns="http://biordf.org/ontologies/irefindex/mi_0914_irefindex_vocabulary_number-supporting-articles_XMLSchema#integer<_uri.owl#"
+     xml:base="http://biordf.org/ontologies/irefindex/mi_0914_irefindex_vocabulary_number-supporting-articles_XMLSchema#integer<_uri.owl"
+     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+     xmlns:owl="http://www.w3.org/2002/07/owl#"
+     xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#">
+    <owl:Ontology rdf:about="http://biordf.org/ontologies/irefindex/mi_0914_irefindex_vocabulary_number-supporting-articles_XMLSchema#integer<_uri.owl"/>
+    
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Datatypes
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+    <rdfs:Datatype rdf:about="http://www.w3.org/2001/XMLSchema#integer</uri"/>
+    
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Data properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+    <owl:DatatypeProperty rdf:about="http://bio2rdf.org/irefindex_vocabulary:number-supporting-articles"/>
+    
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Classes
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+
+
+    <owl:Class rdf:about="http://biordf.org/ontologies/irefindex/mi_0914_irefindex_vocabulary_number-supporting-articles_XMLSchema#integer<_uri.owl#ServiceOutput">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://bio2rdf.org/mi:0914"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://bio2rdf.org/irefindex_vocabulary:number-supporting-articles"/>
+                        <owl:someValuesFrom rdf:resource="http://www.w3.org/2001/XMLSchema#integer</uri"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+    </owl:Class>
+    
+
+
+
+    <owl:Class rdf:about="http://bio2rdf.org/mi:0914"/>
+
+
+</rdf:RDF>
+

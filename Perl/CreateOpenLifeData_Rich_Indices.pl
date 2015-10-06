@@ -81,8 +81,8 @@ my %dataset_endpoints;
 
 open(OUT, ">>endpoint_datatypes.list") || die "can't open output file for writing $!\n";
 
-#my $endpoint = "http://sparql.openlifedata.org/";
-my $endpoint = "http://s5.semanticscience.org:8890/sparql";
+my $endpoint = "http://sparql.openlifedata.org/";
+#my $endpoint = "http://s5.semanticscience.org:8890/sparql";
 
 my $graphquery = RDF::Query::Client->new($namedgSPARQL);
 my $iterator = $graphquery->execute($endpoint,  {Parameters => {timeout => 380000, format => 'application/sparql-results+json'}});

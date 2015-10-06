@@ -1,0 +1,5 @@
+SELECT *
+        WHERE {
+	?obj <http://bio2rdf.org/hgnc_vocabulary:approved-symbol> %VAR.
+	OPTIONAL {?obj  rdfs:label ?label}
+}

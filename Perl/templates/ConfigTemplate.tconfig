@@ -1,0 +1,9 @@
+INPUTCLASS_NAME=so:0000236
+INPUTCLASS_URI=http://openlifedata.org/so:0000236
+OUTPUTCLASS_NAME=ServiceOutput
+OUTPUTCLASS_URI=http://biordf.org/ontologies/affymetrix/so_0000236_affymetrix_vocabulary_x-sgd-inverse_affymetrix_vocabulary_Probeset.owl#ServiceOutput
+PREDICATE_NAME=x-sgd-inverse
+PREDICATE_URI=http://openlifedata.org/affymetrix_vocabulary:x-sgd-inverse
+ORIGINAL_ENDPOINT=http://openlifedata.org/affymetrix/sparql/
+GENERIC_ENDPOINT=http://openlifedata.org/affymetrix/sparql/
+OBJECT_TYPE=http://openlifedata.org/affymetrix_vocabulary:Probeset

@@ -1,0 +1,5 @@
+SELECT *
+        WHERE {
+	?obj <http://bio2rdf.org/clinicaltrials_vocabulary:participant-counts> %VAR.
+	OPTIONAL {?obj  rdfs:label ?label}
+}

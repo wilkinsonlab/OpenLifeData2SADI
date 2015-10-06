@@ -1,0 +1,5 @@
+SELECT *
+        WHERE {
+	?obj <http://bio2rdf.org/sgd_vocabulary:throughput> %VAR.
+	OPTIONAL {?obj  rdfs:label ?label}
+}

@@ -1,0 +1,5 @@
+SELECT *
+        WHERE {
+	?obj <http://bio2rdf.org/mgi_vocabulary:is-negated> %VAR.
+	OPTIONAL {?obj  rdfs:label ?label}
+}

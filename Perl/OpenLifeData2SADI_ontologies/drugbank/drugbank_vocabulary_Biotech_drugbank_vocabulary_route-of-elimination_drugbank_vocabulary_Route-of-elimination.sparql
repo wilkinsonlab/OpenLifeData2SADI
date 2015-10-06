@@ -1,0 +1,5 @@
+SELECT *
+        WHERE {
+	?obj <http://bio2rdf.org/drugbank_vocabulary:route-of-elimination> %VAR.
+	OPTIONAL {?obj  rdfs:label ?label}
+}

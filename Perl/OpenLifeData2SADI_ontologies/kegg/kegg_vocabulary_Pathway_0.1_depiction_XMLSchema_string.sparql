@@ -1,0 +1,5 @@
+SELECT *
+        WHERE {
+	?obj <http://xmlns.com/foaf/0.1/depiction> %VAR.
+	OPTIONAL {?obj  rdfs:label ?label}
+}

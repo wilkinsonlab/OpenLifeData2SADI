@@ -1,0 +1,52 @@
+<?xml version="1.0"?>
+<rdf:RDF xmlns="http://biordf.org/ontologies/drugbank/drugbank_vocabulary_Small-molecule_drugbank_vocabulary_calculated-properties_drugbank_vocabulary_Physiological-Charge.owl#"
+     xml:base="http://biordf.org/ontologies/drugbank/drugbank_vocabulary_Small-molecule_drugbank_vocabulary_calculated-properties_drugbank_vocabulary_Physiological-Charge.owl"
+     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+     xmlns:owl="http://www.w3.org/2002/07/owl#"
+     xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#">
+    <owl:Ontology rdf:about="http://biordf.org/ontologies/drugbank/drugbank_vocabulary_Small-molecule_drugbank_vocabulary_calculated-properties_drugbank_vocabulary_Physiological-Charge.owl"/>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Object Properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+       <owl:ObjectProperty rdf:about="http://bio2rdf.org/drugbank_vocabulary:calculated-properties"/>
+    
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Classes
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+
+
+    <owl:Class rdf:about="http://biordf.org/ontologies/drugbank/drugbank_vocabulary_Small-molecule_drugbank_vocabulary_calculated-properties_drugbank_vocabulary_Physiological-Charge.owl#ServiceOutput">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://bio2rdf.org/drugbank_vocabulary:Small-molecule"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://bio2rdf.org/drugbank_vocabulary:calculated-properties"/>
+                        <owl:someValuesFrom rdf:resource="http://bio2rdf.org/drugbank_vocabulary:Physiological-Charge"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+    </owl:Class>
+    
+    <owl:Class rdf:about="http://bio2rdf.org/drugbank_vocabulary:Physiological-Charge"/>
+  
+
+    <owl:Class rdf:about="http://bio2rdf.org/drugbank_vocabulary:Small-molecule"/>
+
+</rdf:RDF>
