@@ -1,5 +1,0 @@
-SELECT *
-        WHERE {
-	?obj <http://bio2rdf.org/taxonomy_vocabulary:translation-table> %VAR.
-	OPTIONAL {?obj  rdfs:label ?label}
-}

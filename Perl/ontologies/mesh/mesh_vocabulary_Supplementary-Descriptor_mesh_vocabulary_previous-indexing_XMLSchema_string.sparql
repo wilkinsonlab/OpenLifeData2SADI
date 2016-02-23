@@ -1,5 +1,0 @@
-SELECT *
-        WHERE {
-	?obj <http://bio2rdf.org/mesh_vocabulary:previous-indexing> %VAR.
-	OPTIONAL {?obj  rdfs:label ?label}
-}

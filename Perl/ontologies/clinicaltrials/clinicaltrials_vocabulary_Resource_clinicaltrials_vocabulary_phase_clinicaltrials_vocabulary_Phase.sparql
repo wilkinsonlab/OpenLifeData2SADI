@@ -1,5 +1,0 @@
-SELECT *
-        WHERE {
-	?obj <http://bio2rdf.org/clinicaltrials_vocabulary:phase> %VAR.
-	OPTIONAL {?obj  rdfs:label ?label}
-}

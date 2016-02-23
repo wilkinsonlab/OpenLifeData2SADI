@@ -1,5 +1,0 @@
-SELECT *
-        WHERE {
-	?obj <http://bio2rdf.org/clinicaltrials_vocabulary:minimum-age> %VAR.
-	OPTIONAL {?obj  rdfs:label ?label}
-}

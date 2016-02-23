@@ -1,5 +1,0 @@
-SELECT *
-        WHERE {
-	?obj <http://bio2rdf.org/sgd_vocabulary:is-proper-part-of> %VAR.
-	OPTIONAL {?obj  rdfs:label ?label}
-}

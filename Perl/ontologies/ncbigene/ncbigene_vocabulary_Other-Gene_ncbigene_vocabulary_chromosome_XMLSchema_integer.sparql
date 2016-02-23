@@ -1,5 +1,0 @@
-SELECT *
-        WHERE {
-	?obj <http://bio2rdf.org/ncbigene_vocabulary:chromosome> %VAR.
-	OPTIONAL {?obj  rdfs:label ?label}
-}

@@ -1,5 +1,0 @@
-SELECT *
-        WHERE {
-	?obj <http://bio2rdf.org/sgd_vocabulary:query-start> %VAR.
-	OPTIONAL {?obj  rdfs:label ?label}
-}
