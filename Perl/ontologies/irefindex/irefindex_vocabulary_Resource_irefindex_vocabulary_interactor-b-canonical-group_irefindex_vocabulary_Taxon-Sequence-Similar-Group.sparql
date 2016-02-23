@@ -1,5 +1,0 @@
-SELECT *
-        WHERE {
-	?obj <http://bio2rdf.org/irefindex_vocabulary:interactor-b-canonical-group> %VAR.
-	OPTIONAL {?obj  rdfs:label ?label}
-}

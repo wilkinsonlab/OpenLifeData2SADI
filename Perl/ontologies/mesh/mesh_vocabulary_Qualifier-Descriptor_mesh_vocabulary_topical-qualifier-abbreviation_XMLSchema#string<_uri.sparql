@@ -1,5 +1,0 @@
-SELECT *
-        WHERE {
-	?obj <http://bio2rdf.org/mesh_vocabulary:topical-qualifier-abbreviation> %VAR.
-	OPTIONAL {?obj  rdfs:label ?label}
-}

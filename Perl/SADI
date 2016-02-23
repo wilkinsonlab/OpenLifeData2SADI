@@ -33,7 +33,7 @@ Log::Log4perl->easy_init($WARN);
 # since on most servers you cannot serve files from your executables folder
 # the cofiguration files will exist somewhere else on your path
 # place the path to the ontologies and .cfg files here
-my $CONFIGURATION_FILE_PATH="/home/biordf/public_html/ontologies";
+my $CONFIGURATION_FILE_PATH="/home/biordf/public_html/OpenLifeData2SADI_ontologies";
 
 
 # if your server does not provide these environment variables
@@ -72,14 +72,14 @@ my ($dataset, $method) = ($1, $2);
 my $CFG = &getConfig($dataset, $method);
 
 
-open (SPARQL, "/home/biordf/public_html/ontologies/$dataset/$method.sparql");
+open (SPARQL, "$CONFIGURATION_FILE_PATH/$dataset/$method.sparql");
 my $sparql = "";
 while (<SPARQL>){
 	$sparql .= $_;
 }
 close SPARQL;
 
-open (OWL, "/home/biordf/public_html/ontologies/$dataset/$method.owl");
+open (OWL, "$CONFIGURATION_FILE_PATH/$dataset/$method.owl");
 my $owl = "";
 while (<OWL>){
 	$owl .= $_;
@@ -219,7 +219,6 @@ sub getConfig{
 	"PREDICATE_NAME", 
 	"PREDICATE_URI",
 	"ORIGINAL_ENDPOINT", 
-	"GENERIC_ENDPOINT",
 	"OBJECT_TYPE",) {
 		
 		my $line = <CFG> || easy_die("not enough parameters in the config file; missing $_\n");

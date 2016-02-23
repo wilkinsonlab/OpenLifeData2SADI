@@ -1,5 +1,0 @@
-SELECT *
-        WHERE {
-	?obj <http://bio2rdf.org/affymetrix_vocabulary:probe-set-id> %VAR.
-	OPTIONAL {?obj  rdfs:label ?label}
-}

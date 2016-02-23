@@ -1,5 +1,0 @@
-SELECT *
-        WHERE {
-	?obj <http://bio2rdf.org/ncbigene_vocabulary:other-designation> %VAR.
-	OPTIONAL {?obj  rdfs:label ?label}
-}

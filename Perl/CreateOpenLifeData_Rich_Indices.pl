@@ -3,6 +3,17 @@ use warnings;
 use RDF::Query::Client;
 use LWP::Simple;
 
+
+#  NOTE THAT THIS CODE IS NOW DEPRECATED
+# Since Michel brought all endpoints into a single endpoint
+# this code will not work
+
+print "\n\nNOTE THAT THIS CODE IS NOW DEPRECATED.  Michel brought all endpoints into a single endpoint and now this code will not work.  If you stil want to run it, then you need to edit it and remove the 'exit' command.  Good luck!\n\n";
+exit 0;
+
+
+
+
 # Filtering of queries at the SPARQL end is just too slow.
 # this version of the code does the regexp filtering on the results,
 # rather than in the query
@@ -18,7 +29,7 @@ WHERE {
 }';
 
 
-my $RAWsubjecttypesSPARQL = 'SELECT distinct(?stype)
+my $RAWsubjecttypesSPARQL = 'SELECT distinct ?stype
 FROM <NAMED_GRAPH_HERE>
 WHERE {
  ?s a ?stype .
@@ -26,7 +37,7 @@ WHERE {
 ';
 
 
-my $RAWpredicatetypesSPARQL = 'SELECT distinct(?p)
+my $RAWpredicatetypesSPARQL = 'SELECT distinct ?p
 FROM <NAMED_GRAPH_HERE>
 WHERE {
  ?s a <SUBJECT_TYPE_HERE> .
@@ -35,7 +46,7 @@ WHERE {
 ';
 
 
-my $RAWobjecttypesSPARQL = 'SELECT distinct(?otype)
+my $RAWobjecttypesSPARQL = 'SELECT distinct ?otype
 FROM <NAMED_GRAPH_HERE>
 WHERE {
  ?s a <SUBJECT_TYPE_HERE> .
@@ -44,7 +55,7 @@ WHERE {
 }';
 
 
-my $RAWspecificobjecttypesSPARQL = 'SELECT distinct(?o)
+my $RAWspecificobjecttypesSPARQL = 'SELECT distinct ?o
 WHERE { 
 
     SERVICE <LOCALENDPOINT>  
@@ -81,8 +92,8 @@ my %dataset_endpoints;
 
 open(OUT, ">endpoint_datatypes.list") || die "can't open output file for writing $!\n";
 
-my $endpoint = "http://sparql.openlifedata.org/";
-#my $endpoint = "http://s5.semanticscience.org:8890/sparql";
+#my $endpoint = "http://sparql.openlifedata.org/";
+my $endpoint = "http://s5.semanticscience.org:8890/sparql";
 
 my $graphquery = RDF::Query::Client->new($namedgSPARQL);
 my $iterator = $graphquery->execute($endpoint,  {Parameters => {timeout => 380000, format => 'application/sparql-results+json'}});
@@ -124,20 +135,23 @@ foreach my $namespace(sort(keys %dataset_endpoints)){
                 next;
         }
 
+        
+        my %subjectPredicateHash;
+        
         while (my $row = $siterator->next){
                 my $stype = $row->{stype}->[1];
-#FILTER (!regex(?stype, "owl#")) .
-#FILTER (!regex(?stype, "dc/terms/Dataset")) .
-#FILTER (!regex(?stype, "w3.org")) .
-#FILTER (!regex(?stype, ":Resource")) 
+                
+                print STDERR "   ...now checking $stype\n";
+
                 next if $stype =~ 'owl#';
                 next if $stype =~ 'dc/terms/Dataset';
                 next if $stype =~ 'w3.org';
-                next if $stype =~ ':Resource';
+                # next if $stype =~ ':Resource';
                 
                 my $base_input_type = "";
-                print STDERR "\n\nno match $stype\n\n" unless $stype =~ m|(http://\S+\..*):\S+$|;  #(something-something.something:something:something):Geneotype
+                print STDERR "\n\nno match $stype\n\n" unless $stype =~ m|(http://\S+\..*):\S+$|;  # e.g.  (something-something.something:something:something):Geneotype
                 $base_input_type = "$1:Resource" if $1;  # because Bio2RDF doesn't know what type something is, it always outputs :Resource, which means we need services that will consume these weakly-typed data
+                
                 
                 my $predicatetypesSPARQL = $RAWpredicatetypesSPARQL;
                 $predicatetypesSPARQL =~ s/NAMED_GRAPH_HERE/$namedgraph/;
@@ -148,102 +162,97 @@ foreach my $namespace(sort(keys %dataset_endpoints)){
                 unless ($piterator){
                         print "          ---------no predicate types found -----------\n";
                         open (ERR, ">>SPARQLerrors.list") || die "can't open error file $!\n";
+                        print ERR "          ---------no predicate types found -----------\n";
                         print ERR "$endpoint, $predicatetypesSPARQL\n\n";
                         close ERR;
                         next;
                 }
-        
+
                 while (my $row = $piterator->next){
                         my $ptype = $row->{p}->[1];
-#FILTER (!regex(?p, "w3.org"))
-#FILTER (?p != <http://rdfs.org/ns/void#inDataset>)
 
                         next if $ptype =~ 'w3.org';
                         next if $ptype =~ 'void#inDataset';
-                        my $objecttypesSPARQL = $RAWobjecttypesSPARQL;
-                        $objecttypesSPARQL =~ s/NAMED_GRAPH_HERE/$namedgraph/;
-                        $objecttypesSPARQL =~ s/SUBJECT_TYPE_HERE/$stype/;
-                        $objecttypesSPARQL =~ s/PREDICATE_TYPE_HERE/$ptype/;
                         
-                        my $otypequery = RDF::Query::Client->new($objecttypesSPARQL); # query for all output types of the form xxx_vocabulary:Resource
-                        my $oiterator = $otypequery->execute($endpoint,  {Parameters => {timeout => 380000, format => 'application/sparql-results+json'}});
+                        $subjectPredicateHash{$stype."||||".$ptype} = 1;
 
-                        unless ($oiterator){
-                                print "          ---------no predicate types found -----------\n";
-                                open (ERR, ">>SPARQLerrors.list") || die "can't open error file $!\n";
-                                print ERR "$endpoint, $objecttypesSPARQL\n\n";
-                                close ERR;
-                                next;
-                        }
-
-                        my $FLAG = 0;   # this is a flag that is up when it is a resource object, and down when it is a datatype object
-                        if ($oiterator){
-                                while (my $row = $oiterator->next){
-                                        $FLAG=1;   # an object type was found - set flag so that we don't do the datatype query!
-                                        my $otype = $row->{otype}->[1];
-                                        
-                                        next if $otype =~ 'owl#';
-                                        next if $otype =~ 'w3.org';
-#FILTER (!regex(?otype, "owl#")) .
-#FILTER (!regex(?stype, "w3.org")) .
-
-
-                                        unless ($otype =~ /:Resource/){  # it is already a specific type
-                                                print "           Found Triple Pattern:     $stype $ptype $otype\n";
-                                                print OUT "$namespace\t$stype\t$ptype\t$otype\n";
-                                                print OUT "$namespace\t$base_input_type\t$ptype\t$otype\n" if $base_input_type;
-                                        } else {  # this is one of those generic bio2rdf REsource types, so try to figure out a more specific type with a federated query
-                                                
-                                                
-                                                next;
-                                                
-                                                
-                                                
-                                                
-                                                
-                                                
-                                                #die "can't match $otype to determine Bio2RDF namespace" unless ($otype =~ m|openlifedata\.org/([^_]+)_|);  # match everything after the / and up to the next '_'
-                                                die "can't match $otype to determine Bio2RDF namespace" unless ($otype =~ m|bio2rdf\.org/([^_]+)_|);  # match everything after the / and up to the next '_'
-                                                my $remotenamespace = $1;
-                                                print "checking $remotenamespace\n";   # is this a namespace that we have heard of before?
-                
-                                                unless ($dataset_endpoints{$remotenamespace}){  # if the remote dataset isn't alive, then just print the triple pattern in its generic form
-                                                        print "$remotenamespace not found in our index, writing generic triple pattern and moving on...\n" ;
-                                                        print "           Found Triple Pattern:     $stype $ptype $otype\n";
-                                                        print OUT "$namespace\t$stype\t$ptype\t$otype\n";
-                                                        print OUT "$namespace\t$base_input_type\t$ptype\t$otype\n" if $base_input_type;
-                                                        next;  # move on to the next ojbect type
-                                                }
-                                                
-                                                # if we get here, then we have a :Resource that is pointing to a remote dataset that is alive.  So do the federated query
-                                                my ($remoteendpoint, $namedgraph) = @{$dataset_endpoints{$remotenamespace}};
-                                                die "can't find remote endpoint for $remotenamespace" unless $remoteendpoint;  # this should never happen, but just in case
-                                                my @specificotypes = &getSpecificObjectTypes($otype, $endpoint, $remoteendpoint);  # this subroutine does the federated query
-                                                unless ($specificotypes[0]){ # if there was no more specific type found, then the list returned from the subroutine is empty, so just write the generic type
-                                                        unless ($namespace eq $remotenamespace){                                                
-                                                                open(FAILED, ">>NoSpecificTypeFound.txt") || die "can't open the file for Michel of non-specific types $!\n";
-                                                                print FAILED "data in $namespace exists in $remotenamespace but has no more specific type than $otype\n\n";
-                                                                close FAILED;
-                                                        }
+                }
+        }
         
-                                                        print "           Failed to find anything more specific than $otype\n";
-                                                        print "           Found Triple Pattern:     $stype $ptype $otype\n";
-                                                        print OUT "$namespace\t$stype\t$ptype\t$otype\n";
-                                                        print OUT "$namespace\t$base_input_type\t$ptype\t$otype\n" if $base_input_type;
-                                                        
-                                                } else {
-                                                        foreach my $specificotype(@specificotypes){
-                                                                print "           Found Triple Pattern:     $stype $ptype $specificotype\n";
-                                                                print OUT "$namespace\t$stype\t$ptype\t$specificotype\n";
-                                                                print OUT "$namespace\t$base_input_type\t$ptype\t$specificotype\n" if $base_input_type;
-                                                        }                                                
-                                                }                                       
-                                        }
+        # now we have a non-redundant hash of all S + P combinations in that endpoint
+        # iterate over them to find the object (O) types.
+        
+        foreach my $key(keys %subjectPredicateHash){
+                $key =~ /(.*?)\|\|\|\|(.*?)/;
+                my $stype = $1;
+                my $ptype = $2;
+                die "can't extract subject predicate pair from $key" unless ($stype && $ptype);
+
+                # this query only returns things that have an rdf:type
+                # therefore it will miss anything that is a Literal
+                # (dont worry, we deal with those later!  :-) )
+                my $objecttypesSPARQL = $RAWobjecttypesSPARQL;
+                $objecttypesSPARQL =~ s/NAMED_GRAPH_HERE/$namedgraph/;
+                $objecttypesSPARQL =~ s/SUBJECT_TYPE_HERE/$stype/;
+                $objecttypesSPARQL =~ s/PREDICATE_TYPE_HERE/$ptype/;
+                        
+                my $otypequery = RDF::Query::Client->new($objecttypesSPARQL); # query for all output types of the form xxx_vocabulary:Resource
+                my $oiterator = $otypequery->execute($endpoint,  {Parameters => {timeout => 380000, format => 'application/sparql-results+json'}});
+
+                unless ($oiterator){
+                        print "          ---------no object types found for $stype  and   $ptype   -----------\n";
+                        open (ERR, ">>SPARQLerrors.list") || die "can't open error file $!\n";
+                        print ERR "          ---------no object types found for $stype  and   $ptype   -----------\n";
+                        print ERR "$endpoint, $objecttypesSPARQL\n\n";
+                        close ERR;
+                        next;
+                }
+
+                my $FLAG = 0;   # this is a flag that is up when it is a resource object, and down when it is a datatype object
+                if ($oiterator){
+                        while (my $row = $oiterator->next){
+                                $FLAG=1;   # an object type was found - set flag so that we don't do the datatype query for this subject/predicate pair!
+                                my $otype = $row->{otype}->[1];
+        
+                                next if $otype =~ 'owl#';
+                                next if $otype =~ 'w3.org';
+        
+                                print "           Found Triple Pattern:     $stype $ptype $otype\n";
+                                print OUT "$namespace\t$stype\t$ptype\t$otype\n";
+                                                                
+                                #die "can't match $otype to determine Bio2RDF namespace" unless ($otype =~ m|openlifedata\.org/([^_]+)_|);  # match everything after the / and up to the next '_'
+                                die "can't match $otype to determine Bio2RDF namespace" unless ($otype =~ m|bio2rdf\.org/([^_]+)_|);  # match everything after the / and up to the next '_'
+                                my $remotenamespace = $1;
+                                print "checking $remotenamespace\n";   # is this a namespace that we have heard of before?
+        
+                                unless ($dataset_endpoints{$remotenamespace}){  # if the remote dataset isn't alive, then just print the triple pattern in its generic form
+                                        next;  # move on to the next ojbect type
                                 }
                                 
+                                # if we get here, then we have a :Resource that is pointing to a remote dataset that is alive.  So do the federated query
+                                my ($remoteendpoint, $namedgraph) = @{$dataset_endpoints{$remotenamespace}};
+                                die "can't find remote endpoint for $remotenamespace" unless $remoteendpoint;  # this should never happen, but just in case
+                                my @specificotypes = &getSpecificObjectTypes($otype, $endpoint, $remoteendpoint);  # this subroutine does the federated query
+                                unless ($specificotypes[0]){ # if there was no more specific type found, then the list returned from the subroutine is empty, so just write the generic type
+                                        unless ($namespace eq $remotenamespace){                                                
+                                                open(FAILED, ">>NoSpecificTypeFound.txt") || die "can't open the file for Michel of non-specific types $!\n";
+                                                print FAILED "data in $namespace exists in $remotenamespace but has no more specific type than $otype\n\n";
+                                                close FAILED;
+                                        }
+        
+                                        print "           Failed to find anything more specific than $otype\n";
+                                        
+                                } else {
+                                        foreach my $specificotype(@specificotypes){
+                                                print "           Found Specific Triple Pattern:     $stype $ptype $specificotype\n";
+                                                print OUT "$namespace\t$stype\t$ptype\t$specificotype\n";
+                                        }                                                
+                                }                                       
                         }
+                               
                         next if ($FLAG);  # if the flag is up, then don't test the datatype                        
 
+                        
                         my $datatypesSPARQL = $RAWobjectdatatypesSPARQL;
                         $datatypesSPARQL =~ s/NAMED_GRAPH_HERE/$namedgraph/;
                         $datatypesSPARQL =~ s/SUBJECT_TYPE_HERE/$stype/;
@@ -253,20 +262,18 @@ foreach my $namespace(sort(keys %dataset_endpoints)){
                        
                        
                         my $dtypequery = RDF::Query::Client->new($datatypesSPARQL); # query for all output types of the form xxx_vocabulary:Resource
-                        $dtypequery->useragent->default_headers->header(Accept => "text/plain");
-                        $diterator = $dtypequery->execute($endpoint,  {Parameters => {timeout => 380000, format => 'text/plain'}});
+                        $dtypequery->useragent->default_headers->header(Accept => "text/plain");  # this was due to a bug in Virtuoso...
+                        $diterator = $dtypequery->execute($endpoint,  {Parameters => {timeout => 380000, format => 'text/plain'}});  # and the bug may not exist anymore... but this works anyway.
                         my $content = $dtypequery->{results}->[0]->{response}->content;
                         if ($content =~ m"(http://www.w3.org/2001/XMLSchema#\S+?)\<"s) {
                                 print "           Found Triple Pattern:     $stype $ptype $1\n";
                                 print OUT "$namespace\t$stype\t$ptype\t$1\n";
-                                print OUT "$namespace\t$base_input_type\t$ptype\t$1\n" if $base_input_type;
                                 
                         } else {
                                 print "          ---------no data types found for $stype $ptype defaulting to STRING-----------\n";
                                 my $otype = "http://www.w3.org/2001/XMLSchema#string";
                                 print "           Found Triple Pattern:     $stype $ptype $otype\n";
                                 print OUT "$namespace\t$stype\t$ptype\t$otype\n";
-                                print OUT "$namespace\t$base_input_type\t$ptype\t$otype\n" if $base_input_type;
                                 
                         }
                         
@@ -321,8 +328,6 @@ sub getSpecificObjectTypes {  # there should never be more than one specific typ
                 my $objecttype = $row->{o}->[1];
                 next if $objecttype =~ /$otype/;
                 next if $objecttype =~ 'w3.org';
-#FILTER (?o != <OTYPE>)
-#FILTER (!regex(?o, "w3.org" ))
 
                 push @otypes, $objecttype;
         }

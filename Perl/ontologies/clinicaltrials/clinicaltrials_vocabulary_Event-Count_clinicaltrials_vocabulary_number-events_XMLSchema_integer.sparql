@@ -1,5 +1,0 @@
-SELECT *
-        WHERE {
-	?obj <http://bio2rdf.org/clinicaltrials_vocabulary:number-events> %VAR.
-	OPTIONAL {?obj  rdfs:label ?label}
-}

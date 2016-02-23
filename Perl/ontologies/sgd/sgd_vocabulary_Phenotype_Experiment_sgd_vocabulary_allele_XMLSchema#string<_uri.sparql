@@ -1,5 +1,0 @@
-SELECT *
-        WHERE {
-	?obj <http://bio2rdf.org/sgd_vocabulary:allele> %VAR.
-	OPTIONAL {?obj  rdfs:label ?label}
-}

@@ -1,5 +1,0 @@
-SELECT *
-        WHERE {
-	?obj <http://bio2rdf.org/drugbank_vocabulary:ddi-interactor-in> %VAR.
-	OPTIONAL {?obj  rdfs:label ?label}
-}
